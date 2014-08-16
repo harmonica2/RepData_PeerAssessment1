@@ -1,0 +1,68 @@
+# Reproducible Research: Peer Assessment 1
+## Loading and preprocessing the data
+### The file "activity.csv" is downloaded to the working directory
+```{r}
+Activity<-read.csv("activity.csv",header=TRUE,comment.char = "",colClasses=
+                         c("integer","character","integer"),na.strings='NA')
+Activity$date<-as.Date(Activity$date,"%Y-%m-%d")
+```
+## What is mean total number of steps taken per day?
+### Histogram of steps per day
+```{r}
+library(reshape2)
+ActivityMelt<-melt(Activity,id.vars=c("date","interval"),na.rm=TRUE)
+ActivityTotal<-dcast(ActivityMelt,date~variable,fun=sum)
+hist(ActivityTotal$steps,main="Total Number of Steps Taken Each Day",
+     xlab="Number of Steps")
+```
+### Mean and Median Steps Each Day
+```{r}
+ActivityDateMean<-dcast(ActivityMelt,date~variable,fun=mean)
+ActivityDateMedian<-dcast(ActivityMelt,date~variable,fun=median,fill=0)
+Report<-cbind(ActivityDateMean,ActivityDateMedian$steps)
+colnames(Report)<-c("date","mean steps","median steps")
+Report
+```
+## What is the average daily activity pattern?
+### Time Series of Average Steps taken by time interval
+```{r}
+ActivityIntervalMean<-dcast(ActivityMelt,interval~variable,fun=mean)
+plot(ActivityIntervalMean$interval,ActivityIntervalMean$steps,type="l",
+     main="Average Daily Steps By Time Interval",xlab="Time Interval",
+     ylab="Number of Steps")
+``` 
+### Which 5-minute interval contains the maximum number of steps?
+```{r}
+ActivityIntervalMean[ActivityIntervalMean$steps==
+                             max(ActivityIntervalMean$steps),1]
+``` 
+## Imputing missing values
+###Calculate and report the total number of missing values in the dataset
+```{r}
+sum(is.na(Activity$steps))
+```
+### Replace NA's with mean of interval
+```{r}
+Activity$steps2<-sapply(seq_len(nrow(Activity)),function (x) 
+        ifelse(is.na(Activity$steps[[x]]),
+               ActivityIntervalMean[ActivityIntervalMean$interval==
+                                            Activity$interval[[x]],2],
+               Activity$steps[[x]]))
+```
+### Histogram of steps per day
+```{r}
+ActivityMelt<-melt(Activity,id.vars=c("date","interval"),na.rm=TRUE)
+ActivityTotal<-dcast(ActivityMelt,date~variable,fun=sum)
+hist(ActivityTotal$steps2,main="Total Number of Steps Taken Each Day",
+     xlab="Number of Steps")
+```
+### Mean and Median Steps Each Day
+```{r}
+ActivityDateMean<-dcast(ActivityMelt,date~variable,fun=mean)
+ActivityDateMedian<-dcast(ActivityMelt,date~variable,fun=median,fill=0)
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+summary(cars)
+```

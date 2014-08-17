@@ -23,6 +23,7 @@ ActivityDateMean<-dcast(ActivityMelt,date~variable,fun=mean)
 ActivityDateMedian<-dcast(ActivityMelt,date~variable,fun=median,fill=0)
 Report<-cbind(ActivityDateMean,ActivityDateMedian$steps)
 colnames(Report)<-c("date","mean steps","median steps")
+Report$date<-as.character(Report$date)
 library(xtable)
 print(xtable(Report),type="html")
 ```
@@ -49,7 +50,7 @@ sum(is.na(Activity$steps))
 ```{r}
 Activity$steps2<-sapply(seq_len(nrow(Activity)),function (x) 
         ifelse(is.na(Activity$steps[[x]]),
-               ActivityIntervalMean[ActivityIntervalMean$interval==
+               ActivityIntervalMean[ActivityIntervalMean$interval== 
                                             Activity$interval[[x]],2],
                Activity$steps[[x]]))
 ```
@@ -58,11 +59,11 @@ Activity$steps2<-sapply(seq_len(nrow(Activity)),function (x)
 ActivityMelt<-melt(Activity,id.vars=c("date","interval"),na.rm=FALSE)
 ActivityTotal<-dcast(ActivityMelt,date~variable,fun=sum)
 par(mfrow=c(1,2))
-hist(ActivityTotal$steps,main="Total Number of Steps Taken Each Day",
+hist(ActivityTotal$steps,main="Total Steps Taken Each Day",
      sub="Ignore NA",ylim=c(0,37),
      xlab="Number of Steps")
-hist(ActivityTotal$steps2,main="Total Number of Steps Taken Each Day",
-     sub="Estimate NA based on Mean for That Interval",ylim=c(0,37),
+hist(ActivityTotal$steps2,main="Total Steps Taken Each Day",
+     sub="Estimate NA From Interval Mean",ylim=c(0,37),
      xlab="Number of Steps")
 ```
 
@@ -75,6 +76,7 @@ colnames(Report)<-c("date","mean steps - ignore NA",
                     "mean steps - estimate NA based on mean for the interval",
                     "median steps - ignore NA",
                     "median steps - estimate NA based on mean for the interval")
+Report$date<-as.character(Report$date)
 print(xtable(Report),type="html")
 ```
 ### The NA values are for full days.  The result of replacing the NA values with 
@@ -91,4 +93,10 @@ ActivityIntervalMean<-dcast(ActivityMelt,interval+weekend~variable,fun=mean)
 library(lattice)
 xyplot(steps~interval|weekend,data=ActivityIntervalMean, 
        main="Average Daily Steps By Time Interval",layout=c(1,2),type="l")
+```
+## Knit to HTML
+```{r,echo=FALSE,results="hide"}
+library(knitr)
+setwd("~/Documents/GitHub/RepData_PeerAssessment1")
+knit2html("RepData_PA1_Markowitz.Rmd")
 ```

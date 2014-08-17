@@ -18,12 +18,13 @@ hist(ActivityTotal$steps,main="Total Number of Steps Taken Each Day",
 ```
 
 ### Mean and Median Steps Each Day
-```{r}
+```{r,results="asis"}
 ActivityDateMean<-dcast(ActivityMelt,date~variable,fun=mean)
 ActivityDateMedian<-dcast(ActivityMelt,date~variable,fun=median,fill=0)
 Report<-cbind(ActivityDateMean,ActivityDateMedian$steps)
 colnames(Report)<-c("date","mean steps","median steps")
-Report
+library(xtable)
+print(xtable(Report),type="html")
 ```
 ## What is the average daily activity pattern?
 ### Time Series of Average Steps taken by time interval
@@ -66,12 +67,15 @@ hist(ActivityTotal$steps2,main="Total Number of Steps Taken Each Day",
 ```
 
 ### Mean and Median Steps Each Day
-```{r}
+```{r,results="asis"}
 ActivityDateMean<-dcast(ActivityMelt,date~variable,fun=mean)
 ActivityDateMedian<-dcast(ActivityMelt,date~variable,fun=median,fill=0)
 Report<-cbind(ActivityDateMean,ActivityDateMedian[,2:3])
-colnames(Report)<-c("date","mean steps - ignore NA","mean steps - estimate NA based on mean for the interval","median steps - ignore NA","median steps - estimate NA based on mean for the interval")
-Report
+colnames(Report)<-c("date","mean steps - ignore NA",
+                    "mean steps - estimate NA based on mean for the interval",
+                    "median steps - ignore NA",
+                    "median steps - estimate NA based on mean for the interval")
+print(xtable(Report),type="html")
 ```
 ### The NA values are for full days.  The result of replacing the NA values with 
 ### the mean for each interval is to simply create more incidences of an average
@@ -84,13 +88,7 @@ Activity$weekend<-ifelse(weekdays(Activity$date)=="Saturday"|
 Activity$weekend<-as.factor(Activity$weekend)
 ActivityMelt<-melt(Activity,id.vars=c("date","interval","weekend"),na.rm=TRUE)
 ActivityIntervalMean<-dcast(ActivityMelt,interval+weekend~variable,fun=mean)
-AIMWE<-ActivityIntervalMean[ActivityIntervalMean$weekend=="weekend",]
-AIMWD<-ActivityIntervalMean[ActivityIntervalMean$weekend=="weekday",]
-par(mfrow=c(2,1))
-plot(AIMWD$interval,AIMWD$steps,type="l",
-      main="Average Daily Steps By Time Interval - Weekday",xlab="Time Interval",
-      ylab="Number of Steps")
-plot(AIMWE$interval,AIMWE$steps,type="l",
-      main="Average Daily Steps By Time Interval - Weekend",xlab="Time Interval",
-      ylab="Number of Steps")
+library(lattice)
+xyplot(steps~interval|weekend,data=ActivityIntervalMean, 
+       main="Average Daily Steps By Time Interval",layout=c(1,2),type="l")
 ```

@@ -1,7 +1,8 @@
 # Reproducible Research: Peer Assessment 1
 ## Loading and preprocessing the data
-### The file "activity.csv" is downloaded to the working directory
+### The file "activity.csv" is downloaded to the home Documents Folder
 ```{r}
+setwd("~/Documents")
 Activity<-read.csv("activity.csv",header=TRUE,comment.char = "",colClasses=
                          c("integer","character","integer"),na.strings='NA')
 Activity$date<-as.Date(Activity$date,"%Y-%m-%d")
@@ -15,6 +16,7 @@ ActivityTotal<-dcast(ActivityMelt,date~variable,fun=sum)
 hist(ActivityTotal$steps,main="Total Number of Steps Taken Each Day",
      xlab="Number of Steps")
 ```
+
 ### Mean and Median Steps Each Day
 ```{r}
 ActivityDateMean<-dcast(ActivityMelt,date~variable,fun=mean)
@@ -31,6 +33,7 @@ plot(ActivityIntervalMean$interval,ActivityIntervalMean$steps,type="l",
      main="Average Daily Steps By Time Interval",xlab="Time Interval",
      ylab="Number of Steps")
 ``` 
+
 ### Which 5-minute interval contains the maximum number of steps?
 ```{r}
 ActivityIntervalMean[ActivityIntervalMean$steps==
@@ -51,18 +54,43 @@ Activity$steps2<-sapply(seq_len(nrow(Activity)),function (x)
 ```
 ### Histogram of steps per day
 ```{r}
-ActivityMelt<-melt(Activity,id.vars=c("date","interval"),na.rm=TRUE)
+ActivityMelt<-melt(Activity,id.vars=c("date","interval"),na.rm=FALSE)
 ActivityTotal<-dcast(ActivityMelt,date~variable,fun=sum)
+par(mfrow=c(1,2))
+hist(ActivityTotal$steps,main="Total Number of Steps Taken Each Day",
+     sub="Ignore NA",ylim=c(0,37),
+     xlab="Number of Steps")
 hist(ActivityTotal$steps2,main="Total Number of Steps Taken Each Day",
+     sub="Estimate NA based on Mean for That Interval",ylim=c(0,37),
      xlab="Number of Steps")
 ```
+
 ### Mean and Median Steps Each Day
 ```{r}
 ActivityDateMean<-dcast(ActivityMelt,date~variable,fun=mean)
 ActivityDateMedian<-dcast(ActivityMelt,date~variable,fun=median,fill=0)
-
+Report<-cbind(ActivityDateMean,ActivityDateMedian[,2:3])
+colnames(Report)<-c("date","mean steps - ignore NA","mean steps - estimate NA based on mean for the interval","median steps - ignore NA","median steps - estimate NA based on mean for the interval")
+Report
+```
+### The NA values are for full days.  The result of replacing the NA values with 
+### the mean for each interval is to simply create more incidences of an average
+### day.  An average day has 10766.19 steps.
 ## Are there differences in activity patterns between weekdays and weekends?
-
 ```{r}
-summary(cars)
+Activity$weekend<-ifelse(weekdays(Activity$date)=="Saturday"|
+                                 weekdays(Activity$date)=="Sunday",
+                         "weekend","weekday")
+Activity$weekend<-as.factor(Activity$weekend)
+ActivityMelt<-melt(Activity,id.vars=c("date","interval","weekend"),na.rm=TRUE)
+ActivityIntervalMean<-dcast(ActivityMelt,interval+weekend~variable,fun=mean)
+AIMWE<-ActivityIntervalMean[ActivityIntervalMean$weekend=="weekend",]
+AIMWD<-ActivityIntervalMean[ActivityIntervalMean$weekend=="weekday",]
+par(mfrow=c(2,1))
+plot(AIMWD$interval,AIMWD$steps,type="l",
+      main="Average Daily Steps By Time Interval - Weekday",xlab="Time Interval",
+      ylab="Number of Steps")
+plot(AIMWE$interval,AIMWE$steps,type="l",
+      main="Average Daily Steps By Time Interval - Weekend",xlab="Time Interval",
+      ylab="Number of Steps")
 ```
